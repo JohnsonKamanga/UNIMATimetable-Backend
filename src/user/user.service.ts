@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserDto } from './create-user.dto';
+import { UpdateNormalUserDetailsDto } from './update-normal-user-details.dto';
 
 @Injectable()
 export class UserService {
@@ -21,7 +22,19 @@ export class UserService {
         return this.userRepository.delete(id);
     }
 
-    updateUser(user : User){
+    //updated user's credentials excluding the pasword
+    updateNormalUserDetails(user : UpdateNormalUserDetailsDto): Promise<UpdateResult>{
         return this.userRepository.update(user.id, user);
+    }
+
+    findUserById(id: number): Promise<User>{
+        return this.userRepository.findOneBy({id});
+    }
+
+    async findUserByUsernameWithoutPassword(username: string){
+        const fetchedUser = await this.userRepository.findOneBy({username});
+        const {password, ...user} = fetchedUser;
+
+        return user;
     }
 }
