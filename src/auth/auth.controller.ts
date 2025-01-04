@@ -6,12 +6,12 @@ import { CreateUserDto } from 'src/user/create-user.dto';
 export class AuthController {
   constructor(private authServices: AuthService) {}
 
-  @Post()
-  signIn(@Body() username: string, @Body() password: string) {
+  @Post('signin')
+  signIn(@Body('username') username: string, @Body('password') password: string) {
     return this.authServices.signIn(username, password);
   }
 
-  @Post()
+  @Post('signup')
   signUp(@Body() user: CreateUserDto) {
     return this.authServices.signUp(user);
   }
