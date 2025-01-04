@@ -1,8 +1,10 @@
 import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
+import { User } from 'src/user/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -31,6 +33,13 @@ export class Timetable {
   @UpdateDateColumn()
   last_modified: Date;
 
-  @OneToMany(()=>CourseToTimeTable, (courseToTimeCourseToTimeTable: CourseToTimeTable)=> courseToTimeCourseToTimeTable.timetable)
-  course_to_timetable: CourseToTimeTable;
+  @OneToMany(
+    () => CourseToTimeTable,
+    (courseToTimeCourseToTimeTable: CourseToTimeTable) =>
+      courseToTimeCourseToTimeTable.timetable,
+  )
+  course_to_timetables: CourseToTimeTable[];
+
+  @ManyToOne(() => User, (user: User) => user.timetables)
+  user: User;
 }
