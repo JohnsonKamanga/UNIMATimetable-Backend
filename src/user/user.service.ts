@@ -37,4 +37,8 @@ export class UserService {
 
         return user;
     }
+
+    findUserByUsernameWithPassword(username: string){
+        return this.userRepository.findOneBy({username});
+    }
 }
