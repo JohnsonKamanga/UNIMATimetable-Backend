@@ -1,7 +1,9 @@
+import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -28,4 +30,7 @@ export class Timetable {
 
   @UpdateDateColumn()
   last_modified: Date;
+
+  @OneToMany(()=>CourseToTimeTable, (courseToTimeCourseToTimeTable: CourseToTimeTable)=> courseToTimeCourseToTimeTable.timetable)
+  course_to_timetable: CourseToTimeTable;
 }

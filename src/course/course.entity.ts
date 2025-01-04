@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { CourseToTimeTable } from "src/coursetotimetable/coursetotimetable.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Course{
@@ -13,4 +14,7 @@ export class Course{
 
     @Column()
     semester: number;
+
+    @OneToMany(()=>CourseToTimeTable, (courseToTimeCourseToTimeTable: CourseToTimeTable)=> courseToTimeCourseToTimeTable.course)
+    course_to_timetable: CourseToTimeTable;
 }
