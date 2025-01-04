@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './create-user.dto';
 import { User } from './user.entity';
@@ -22,5 +22,10 @@ export class UserController {
     @Delete()
     deleteUser(@Body()id: number){
         return this.userServices.deleteUser(id);
+    }
+
+    @Get()
+    findUserByUsername(@Body()username: string){
+        return this.userServices.findUserByUsernameWithoutPassword(username);
     }
 }
