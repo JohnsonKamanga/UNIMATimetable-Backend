@@ -1,20 +1,24 @@
-import { CourseToTimeTable } from "src/coursetotimetable/coursetotimetable.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Course{
-    @PrimaryGeneratedColumn()
-    id: number;
+export class Course {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    course_code: string;
+  @Column()
+  course_code: string;
 
-    @Column()
-    year_taken: number;
+  @Column()
+  year_taken: number;
 
-    @Column()
-    semester: number;
+  @Column()
+  semester: number;
 
-    @OneToMany(()=>CourseToTimeTable, (courseToTimeCourseToTimeTable: CourseToTimeTable)=> courseToTimeCourseToTimeTable.course)
-    course_to_timetable: CourseToTimeTable;
+  @OneToMany(
+    () => CourseToTimeTable,
+    (courseToTimeCourseToTimeTable: CourseToTimeTable) =>
+      courseToTimeCourseToTimeTable.course,
+  )
+  course_to_timetables: CourseToTimeTable[];
 }
