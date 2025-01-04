@@ -14,10 +14,10 @@ export class CourseToTimeTable{
     @Column()
     scheduled_time: string;
 
-    @ManyToOne(()=>Timetable, (timetable: Timetable)=>timetable.course_to_timetable)
+    @ManyToOne(()=>Timetable, (timetable: Timetable)=>timetable.course_to_timetables)
     timetable: Timetable;
 
-    @ManyToOne(()=>Course, (course: Course)=>course.course_to_timetable)
+    @ManyToOne(()=>Course, (course: Course)=>course.course_to_timetables)
     course: Course;
 
 }
