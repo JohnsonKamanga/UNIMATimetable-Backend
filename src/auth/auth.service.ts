@@ -42,7 +42,7 @@ export class AuthService {
         }
 
         //compare entered password with stored hash
-        const res = await  compare(password, user.username);
+        const res = await  compare(password, user.password);
 
         //if comparison fails, throw unauthorized exception
         if(!res){
