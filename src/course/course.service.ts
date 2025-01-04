@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Course } from './course.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, ILike, Repository, UpdateResult } from 'typeorm';
 import { CreateCourseDto } from './create-course.dto';
 
 @Injectable()
@@ -21,5 +21,13 @@ export class CourseService {
 
     updateCourse(course: Course): Promise<UpdateResult>{
         return this.courseRepository.update(course.id, course);
+    }
+
+    findCourseByCode(code: string): Promise<Course>{
+        return this.courseRepository.findOne({
+            where: {
+                course_code: ILike(`%${code}%`),
+            }
+        })
     }
 }
