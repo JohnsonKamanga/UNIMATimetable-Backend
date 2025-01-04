@@ -9,11 +9,6 @@ export class UserController {
         private userServices : UserService
     ){}
 
-    @Post()
-    createUser(@Body()user: CreateUserDto){
-        return this.userServices.createUser(user);
-    }
-
     @Put()
     updateUser(@Body()user: User){
         return this.updateUser(user);
