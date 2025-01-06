@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -19,7 +20,7 @@ export class TimetableController {
       storage: memoryStorage(),
     }),
   )
-  async createRecipe(
+  async createTimetable(
     @UploadedFile() file: Express.Multer.File,
     @Body('userid') userid: number,
   ) {
@@ -28,5 +29,12 @@ export class TimetableController {
     else {
       console.error('Unable to create timetable. File: ', file);
     }
+  }
+
+  @Get()
+  async getTimeTable(
+    @Body('userId')userId: number, @Body('name')name: string
+  ){
+    return this.timetableServices.getTimeTable(userId, name);
   }
 }
