@@ -25,7 +25,7 @@ export class TimetableService {
         '/' +
         (new Date().getFullYear() + 1).toString(),
       semester: Number(timetableDetails[0].course.charAt(4)),
-      user: userid
+      user: userid,
     });
 
     for (let i = 0; i < timetableDetails.length; i++) {
@@ -53,5 +53,62 @@ export class TimetableService {
         user: false,
       },
     });
+  }
+
+  async getTimeTable(userid: number, name: string) {
+    const data = await this.timetableRepository.findOne({
+      where: {
+        name: name,
+        user: { id: userid },
+      },
+      relations: {
+        course_to_timetables: true,
+        user: false,
+      },
+    });
+
+    let res: {
+      monday: CourseToTimeTable[];
+      tuesday: CourseToTimeTable[];
+      wednesday: CourseToTimeTable[];
+      thursday: CourseToTimeTable[];
+      friday: CourseToTimeTable[];
+    } = {
+      monday: [null,null,null,null,null,null,null,null,null],
+      tuesday: [null,null,null,null,null,null,null,null,null],
+      wednesday: [null,null,null,null,null,null,null,null,null],
+      thursday: [null,null,null,null,null,null,null,null,null],
+      friday: [null,null,null,null,null,null,null,null,null],
+    };
+
+    for (let i = 0; i < data.course_to_timetables.length; i++) {
+      const courseSchedule = await this.courseToTimetableRepository.findOne({
+        where: {
+          id: data.course_to_timetables[i].id,
+        },
+        relations: {
+          course: true,
+          timetable: false,
+        },
+      });
+
+      if (Number(courseSchedule.scheduled_time) >= 40) {
+        res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 30) {
+        res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 20) {
+        res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 10) {
+        res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
+          courseSchedule;
+      } else {
+        res.monday[Number(courseSchedule.scheduled_time) - 1] = courseSchedule;
+      }
+    }
+
+    return res;
   }
 }
