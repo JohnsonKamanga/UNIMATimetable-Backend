@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -33,7 +34,7 @@ export class TimetableController {
 
   @Get()
   async getTimeTable(
-    @Body('userId')userId: number, @Body('name')name: string
+    @Query('userId')userId?: number, @Query('name')name?: string
   ){
     return this.timetableServices.getTimeTable(userId, name);
   }
