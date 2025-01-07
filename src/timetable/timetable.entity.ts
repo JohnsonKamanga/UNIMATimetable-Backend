@@ -1,5 +1,5 @@
-import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
-import { User } from 'src/user/user.entity';
+import { CourseToTimeTable } from '../coursetotimetable/coursetotimetable.entity';
+import { User } from '../user/user.entity';
 import {
   Column,
   CreateDateColumn,

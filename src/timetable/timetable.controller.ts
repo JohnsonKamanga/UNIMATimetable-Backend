@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UploadedFile,
@@ -32,10 +33,16 @@ export class TimetableController {
     }
   }
 
-  @Get()
+  @Get('view')
   async getTimeTable(
-    @Query('userId')userId?: number, @Query('name')name?: string
-  ){
+    @Query('userId') userId?: number,
+    @Query('name') name?: string,
+  ) {
     return this.timetableServices.getTimeTable(userId, name);
+  }
+
+  @Get(':userId')
+  getUserTimeTables(@Param('userId') userId: number) {
+    return this.timetableServices.getUserTimetables(userId);
   }
 }
