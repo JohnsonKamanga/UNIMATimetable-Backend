@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Timetable } from './timetable.entity';
 import { Repository } from 'typeorm';
-import { parseTimetableFile } from 'src/utils';
-import { CourseService } from 'src/course/course.service';
-import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
+import { parseTimetableFile } from '../utils';
+import { CourseService } from '../course/course.service';
+import { CourseToTimeTable } from '../coursetotimetable/coursetotimetable.entity';
 
 @Injectable()
 export class TimetableService {
@@ -74,11 +74,11 @@ export class TimetableService {
       thursday: CourseToTimeTable[];
       friday: CourseToTimeTable[];
     } = {
-      monday: [null,null,null,null,null,null,null,null,null],
-      tuesday: [null,null,null,null,null,null,null,null,null],
-      wednesday: [null,null,null,null,null,null,null,null,null],
-      thursday: [null,null,null,null,null,null,null,null,null],
-      friday: [null,null,null,null,null,null,null,null,null],
+      monday: [null, null, null, null, null, null, null, null, null],
+      tuesday: [null, null, null, null, null, null, null, null, null],
+      wednesday: [null, null, null, null, null, null, null, null, null],
+      thursday: [null, null, null, null, null, null, null, null, null],
+      friday: [null, null, null, null, null, null, null, null, null],
     };
 
     for (let i = 0; i < data.course_to_timetables.length; i++) {
@@ -110,5 +110,13 @@ export class TimetableService {
     }
 
     return res;
+  }
+
+  getUserTimetables(userId: number): Promise<Timetable[]> {
+    return this.timetableRepository.find({
+      where: {
+        user: { id: userId },
+      },
+    });
   }
 }
