@@ -118,11 +118,10 @@ function getCoursePeriods(
   return formatedTimeTable;
 }
 
-export function parseTimetableFile(fileBuffer: Buffer) {
-  const file = fileBuffer.toString('utf-8');
+export function parseTimetable(fileString: string) {
 
   //table string
-  const str = getTableString(file);
+  const str = getTableString(fileString);
 
   const unfilteredCourses = getUnfilteredCourses(str);
 
