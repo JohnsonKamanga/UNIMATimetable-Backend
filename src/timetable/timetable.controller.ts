@@ -11,26 +11,19 @@ import {
 import { TimetableService } from './timetable.service';
 import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateTimeTableDto } from './create-timetable.dto';
 
 @Controller('timetable')
 export class TimetableController {
   constructor(private timetableServices: TimetableService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('htmlFile', {
-      storage: memoryStorage(),
-    }),
-  )
-  async createTimetable(
-    @UploadedFile() file: Express.Multer.File,
-    @Body('userid') userid: number,
-  ) {
-    if (file)
-      return await this.timetableServices.createTimeTable(file.buffer, userid);
-    else {
-      console.error('Unable to create timetable. File: ', file);
-    }
+  async createTimetable(@Body() credentials: CreateTimeTableDto) {
+    const { username, password, userid } = credentials;
+    return await this.timetableServices.createTimeTable(
+      { username, password },
+      userid,
+    );
   }
 
   @Get('view')
