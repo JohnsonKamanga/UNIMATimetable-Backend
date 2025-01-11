@@ -25,13 +25,14 @@ export class TimetableService {
     },
     callback,
   ) {
+    const { username, password } = portalCred;
     //login user in first
     request.post(
       'https://students.unima.ac.mw/login.php',
       {
         form: {
-          username: 'bsc-com-09-21',
-          password: 'Timmy Turner',
+          username,
+          password,
           login: '',
         },
       },
@@ -61,36 +62,40 @@ export class TimetableService {
   ) {
     let timetableId: number;
     this.fetchTimeTable(portalCred, async (fileString) => {
-      if (fileString !== '') {
-        const timetableDetails = parseTimetable(fileString);
-        const timetable = await this.timetableRepository.save({
-          name: Date.now().toString(),
-          academic_year:
-            new Date().getFullYear().toString() +
-            '/' +
-            (new Date().getFullYear() + 1).toString(),
-          semester: Number(timetableDetails[0].course.charAt(4)),
-          user: { id: userid },
-        });
-
-        timetableId = timetable.id;
-
-        for (let i = 0; i < timetableDetails.length; i++) {
-          const course = await this.courseServices.createCourse({
-            course_code: timetableDetails[i].course,
-            year_taken: Number(timetableDetails[i].course.charAt(3)),
-            semester: Number(timetableDetails[i].course.charAt(4)),
+      try {
+        if (fileString !== '') {
+          const timetableDetails = parseTimetable(fileString);
+          const timetable = await this.timetableRepository.save({
+            name: Date.now().toString(),
+            academic_year:
+              new Date().getFullYear().toString() +
+              '/' +
+              (new Date().getFullYear() + 1).toString(),
+            semester: Number(timetableDetails[0].course.charAt(4)),
+            user: { id: userid },
           });
 
-          for (let j = 0; j < timetableDetails[i].schedule.length; j++) {
-            await this.courseToTimetableRepository.save({
-              venue: timetableDetails[i].schedule[j].venue,
-              scheduled_time: timetableDetails[i].schedule[j].time,
-              timetable: timetable,
-              course: course,
+          timetableId = timetable.id;
+
+          for (let i = 0; i < timetableDetails.length; i++) {
+            const course = await this.courseServices.createCourse({
+              course_code: timetableDetails[i].course,
+              year_taken: Number(timetableDetails[i].course.charAt(3)),
+              semester: Number(timetableDetails[i].course.charAt(4)),
             });
+
+            for (let j = 0; j < timetableDetails[i].schedule.length; j++) {
+              await this.courseToTimetableRepository.save({
+                venue: timetableDetails[i].schedule[j].venue,
+                scheduled_time: timetableDetails[i].schedule[j].time,
+                timetable: timetable,
+                course: course,
+              });
+            }
           }
         }
+      } catch (error) {
+        console.error('an error occured during timetable parsing: ', error);
       }
     });
 
