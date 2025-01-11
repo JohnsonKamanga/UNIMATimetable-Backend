@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Timetable } from './timetable.entity';
 import { Repository } from 'typeorm';
-import { parseTimetableFile } from '../utils';
+import { parseTimetable } from '../utils';
 import { CourseService } from '../course/course.service';
 import { CourseToTimeTable } from '../coursetotimetable/coursetotimetable.entity';
+import axios from 'axios';
+import * as request from 'postman-request';
 
 @Injectable()
 export class TimetableService {
@@ -16,8 +18,38 @@ export class TimetableService {
     private courseServices: CourseService,
   ) {}
 
-  async createTimeTable(fileBuffer: Buffer, userid) {
-    const timetableDetails = parseTimetableFile(fileBuffer);
+  async createTimeTable(portalCred: {username:string,password:string}, userid: number) {
+    let fileString = '';
+    try {
+
+      //login user in
+      request.post(
+        'https://students.unima.ac.mw/login.php',
+        {
+          form: {
+            username: 'bsc-com-09-21',
+            password: 'Timmy Turner',
+            login: '',
+          },
+        },
+       async (err, response, body) => {
+          if (err) {
+            console.error('An error from postman: ', err);
+          }
+          //use cookies from response to get timetable
+          const res = (await axios.get('https://students.unima.ac.mw/pages/timetable',{
+            headers:{
+              Cookie: `${response.rawHeaders[13]} ${response.rawHeaders[15]}`,
+            }
+          })).data
+          fileString = res;
+        },
+      );
+    } catch (err) {
+      console.error('An error occured during timetable fetching: ', err);
+    }
+
+    const timetableDetails = parseTimetable(fileString);
     const timetable = await this.timetableRepository.save({
       name: Date.now().toString(),
       academic_year:
@@ -25,7 +57,7 @@ export class TimetableService {
         '/' +
         (new Date().getFullYear() + 1).toString(),
       semester: Number(timetableDetails[0].course.charAt(4)),
-      user: userid,
+      user: { id: userid },
     });
 
     for (let i = 0; i < timetableDetails.length; i++) {

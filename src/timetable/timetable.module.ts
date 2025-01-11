@@ -3,8 +3,8 @@ import { TimetableService } from './timetable.service';
 import { TimetableController } from './timetable.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Timetable } from './timetable.entity';
-import { CourseModule } from 'src/course/course.module';
-import { CourseToTimeTable } from 'src/coursetotimetable/coursetotimetable.entity';
+import { CourseModule } from '../course/course.module';
+import { CourseToTimeTable } from '../coursetotimetable/coursetotimetable.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Timetable, CourseToTimeTable]), CourseModule],
