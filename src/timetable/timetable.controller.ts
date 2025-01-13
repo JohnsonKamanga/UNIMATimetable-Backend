@@ -19,9 +19,10 @@ export class TimetableController {
 
   @Post()
   async createTimetable(@Body() credentials: CreateTimeTableDto) {
-    const { username, password, userid } = credentials;
+    const { username, password, timetableName ,userid } = credentials;
     return await this.timetableServices.createTimeTable(
       { username, password },
+      timetableName,
       userid,
     );
   }

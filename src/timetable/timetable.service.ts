@@ -58,6 +58,7 @@ export class TimetableService {
 
   async createTimeTable(
     portalCred: { username: string; password: string },
+    timetableName: string,
     userid: number,
   ) {
     let timetableId: number;
@@ -66,7 +67,7 @@ export class TimetableService {
         if (fileString !== '') {
           const timetableDetails = parseTimetable(fileString);
           const timetable = await this.timetableRepository.save({
-            name: Date.now().toString(),
+            name: timetableName,
             academic_year:
               new Date().getFullYear().toString() +
               '/' +
