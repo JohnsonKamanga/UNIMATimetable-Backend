@@ -3,4 +3,5 @@ export class CreateTimeTableDto{
     password: string;
     userid: number;
     timetableName: string;
+    current: boolean;
 }

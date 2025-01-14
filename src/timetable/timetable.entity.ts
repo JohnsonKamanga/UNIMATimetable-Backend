@@ -24,6 +24,9 @@ export class Timetable {
   @Column()
   semester: number;
 
+  @Column({default: false})
+  current: boolean;
+
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP(6)',
