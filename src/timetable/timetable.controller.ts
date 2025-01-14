@@ -19,11 +19,12 @@ export class TimetableController {
 
   @Post()
   async createTimetable(@Body() credentials: CreateTimeTableDto) {
-    const { username, password, timetableName ,userid } = credentials;
+    const { username, password, timetableName, current , userid } = credentials;
     return await this.timetableServices.createTimeTable(
       { username, password },
       timetableName,
       userid,
+      current
     );
   }
 
@@ -39,4 +40,12 @@ export class TimetableController {
   getUserTimeTables(@Param('userId') userId: number) {
     return this.timetableServices.getUserTimetables(userId);
   }
+
+  @Get('view/current')
+  async getCurrentUserTimeTable(
+    @Query('userId') userId?: number,
+  ) {
+    return this.timetableServices.getCurrentUserTimetable(userId);
+  }
+
 }
