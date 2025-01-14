@@ -60,6 +60,7 @@ export class TimetableService {
     portalCred: { username: string; password: string },
     timetableName: string,
     userid: number,
+    current: boolean,
   ) {
     let timetableId: number;
     this.fetchTimeTable(portalCred, async (fileString) => {
@@ -73,6 +74,7 @@ export class TimetableService {
               '/' +
               (new Date().getFullYear() + 1).toString(),
             semester: Number(timetableDetails[0].course.charAt(4)),
+            current: current,
             user: { id: userid },
           });
 
@@ -140,31 +142,34 @@ export class TimetableService {
       friday: [null, null, null, null, null, null, null, null, null],
     };
 
-    for (let i = 0; i < data.course_to_timetables.length; i++) {
-      const courseSchedule = await this.courseToTimetableRepository.findOne({
-        where: {
-          id: data.course_to_timetables[i].id,
-        },
-        relations: {
-          course: true,
-          timetable: false,
-        },
-      });
+    if (data) {
+      for (let i = 0; i < data.course_to_timetables.length; i++) {
+        const courseSchedule = await this.courseToTimetableRepository.findOne({
+          where: {
+            id: data.course_to_timetables[i].id,
+          },
+          relations: {
+            course: true,
+            timetable: false,
+          },
+        });
 
-      if (Number(courseSchedule.scheduled_time) >= 40) {
-        res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
-          courseSchedule;
-      } else if (Number(courseSchedule.scheduled_time) >= 30) {
-        res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
-          courseSchedule;
-      } else if (Number(courseSchedule.scheduled_time) >= 20) {
-        res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
-          courseSchedule;
-      } else if (Number(courseSchedule.scheduled_time) >= 10) {
-        res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
-          courseSchedule;
-      } else {
-        res.monday[Number(courseSchedule.scheduled_time) - 1] = courseSchedule;
+        if (Number(courseSchedule.scheduled_time) >= 40) {
+          res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 30) {
+          res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 20) {
+          res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 10) {
+          res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
+            courseSchedule;
+        } else {
+          res.monday[Number(courseSchedule.scheduled_time) - 1] =
+            courseSchedule;
+        }
       }
     }
 
@@ -177,5 +182,64 @@ export class TimetableService {
         user: { id: userId },
       },
     });
+  }
+
+  async getCurrentUserTimetable(userId: number) {
+    const data = await this.timetableRepository.findOne({
+      where: {
+        current: true,
+        user: { id: userId },
+      },
+      relations: {
+        course_to_timetables: true,
+        user: false,
+      },
+    });
+
+    let res: {
+      monday: CourseToTimeTable[];
+      tuesday: CourseToTimeTable[];
+      wednesday: CourseToTimeTable[];
+      thursday: CourseToTimeTable[];
+      friday: CourseToTimeTable[];
+    } = {
+      monday: [null, null, null, null, null, null, null, null, null],
+      tuesday: [null, null, null, null, null, null, null, null, null],
+      wednesday: [null, null, null, null, null, null, null, null, null],
+      thursday: [null, null, null, null, null, null, null, null, null],
+      friday: [null, null, null, null, null, null, null, null, null],
+    };
+
+    if (data) {
+      for (let i = 0; i < data.course_to_timetables.length; i++) {
+        const courseSchedule = await this.courseToTimetableRepository.findOne({
+          where: {
+            id: data.course_to_timetables[i].id,
+          },
+          relations: {
+            course: true,
+            timetable: false,
+          },
+        });
+
+        if (Number(courseSchedule.scheduled_time) >= 40) {
+          res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 30) {
+          res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 20) {
+          res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
+            courseSchedule;
+        } else if (Number(courseSchedule.scheduled_time) >= 10) {
+          res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
+            courseSchedule;
+        } else {
+          res.monday[Number(courseSchedule.scheduled_time) - 1] =
+            courseSchedule;
+        }
+      }
+    }
+    return res;
   }
 }
