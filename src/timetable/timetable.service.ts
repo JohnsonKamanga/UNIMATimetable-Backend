@@ -242,4 +242,28 @@ export class TimetableService {
     }
     return res;
   }
+
+  async getCurrentUserTimetableFormattedByCourse(userId: number) {
+    try {
+      let timetable = await this.timetableRepository.findOne({
+        where: {
+          current: true,
+          user: { id: userId },
+        },
+        relations: {
+          course_to_timetables: true,
+          user: false,
+        },
+      });
+
+      for(let i = 0 ; i < timetable.course_to_timetables.length ; i++){
+        const course = await this.courseServices.findCourseByTimetableRelationship(timetable.course_to_timetables[i].id);
+        timetable.course_to_timetables[i].course = course;
+      }
+
+      return timetable;
+    } catch (err) {
+      console.error('An error occured while fetching timetable: ', err);
+    }
+  }
 }
