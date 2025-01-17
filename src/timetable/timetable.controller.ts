@@ -48,4 +48,11 @@ export class TimetableController {
     return this.timetableServices.getCurrentUserTimetable(userId);
   }
 
+  @Get('view/current/courses')
+  async getCurrentUserTimeTableFormattedByCourse(
+    @Query('userId') userId?: number,
+  ) {
+    return this.timetableServices.getCurrentUserTimetableFormattedByCourse(userId);
+  }
+
 }
