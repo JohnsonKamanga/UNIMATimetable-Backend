@@ -30,4 +30,12 @@ export class CourseService {
             }
         })
     }
+
+    findCourseByTimetableRelationship(id: number): Promise<Course>{
+        return this.courseRepository.findOne({
+            where: {
+                course_to_timetables: {id}
+            }
+        })
+    }
 }
