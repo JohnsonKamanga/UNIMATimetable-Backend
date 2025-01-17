@@ -256,12 +256,55 @@ export class TimetableService {
         },
       });
 
-      for(let i = 0 ; i < timetable.course_to_timetables.length ; i++){
-        const course = await this.courseServices.findCourseByTimetableRelationship(timetable.course_to_timetables[i].id);
+      for (let i = 0; i < timetable.course_to_timetables.length; i++) {
+        const course =
+          await this.courseServices.findCourseByTimetableRelationship(
+            timetable.course_to_timetables[i].id,
+          );
         timetable.course_to_timetables[i].course = course;
       }
+      let courses: {
+        id: number;
+        course_code: string;
+        year_taken: number;
+        semester: number;
+        schedule: { venue: string; scheduled_time: string }[];
+      }[] = [];
+      let courseToIndex = {}; // {"course_code": matching index position in courses }
+      for (let i = 0; i < timetable.course_to_timetables.length; i++) {
+        if (
+          courseToIndex[
+            timetable.course_to_timetables[i].course.course_code
+          ] === 0 ||
+          courseToIndex[timetable.course_to_timetables[i].course.course_code]
+        ) {
+          courses[
+            Number(
+              courseToIndex[
+                timetable.course_to_timetables[i].course.course_code
+              ],
+            )
+          ].schedule.push({
+            venue: timetable.course_to_timetables[i].venue,
+            scheduled_time: timetable.course_to_timetables[i].scheduled_time,
+          });
+        } else {
+          courses.push({
+            ...timetable.course_to_timetables[i].course,
+            schedule: [
+              {
+                venue: timetable.course_to_timetables[i].venue,
+                scheduled_time:
+                  timetable.course_to_timetables[i].scheduled_time,
+              },
+            ],
+          });
+          courseToIndex[timetable.course_to_timetables[i].course.course_code] =
+            courses.length - 1;
+        }
+      }
 
-      return timetable;
+      return courses;
     } catch (err) {
       console.error('An error occured while fetching timetable: ', err);
     }
