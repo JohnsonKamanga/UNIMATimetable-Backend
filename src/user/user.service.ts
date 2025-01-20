@@ -4,41 +4,56 @@ import { User } from './user.entity';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserDto } from './create-user.dto';
 import { UpdateNormalUserDetailsDto } from './update-normal-user-details.dto';
+import { genSalt, hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(User)
-        private userRepository: Repository<User>
-    ){}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
-    async createUser(user : CreateUserDto): Promise<User>{
-        const newUser = this.userRepository.create(user);
-        await this.userRepository.insert(newUser);
-        return newUser;
-    }
+  async createUser(user: CreateUserDto): Promise<User> {
+    const newUser = this.userRepository.create(user);
+    await this.userRepository.insert(newUser);
+    return newUser;
+  }
 
-    deleteUser(id: number): Promise<DeleteResult>{
-        return this.userRepository.delete(id);
-    }
+  deleteUser(id: number): Promise<DeleteResult> {
+    return this.userRepository.delete(id);
+  }
 
-    //updated user's credentials excluding the pasword
-    updateNormalUserDetails(user : UpdateNormalUserDetailsDto): Promise<UpdateResult>{
-        return this.userRepository.update(user.id, user);
-    }
+  //updated user's credentials excluding the pasword
+  updateNormalUserDetails(
+    user: UpdateNormalUserDetailsDto,
+  ): Promise<UpdateResult> {
+    return this.userRepository.update(user.id, user);
+  }
 
-    findUserById(id: number): Promise<User>{
-        return this.userRepository.findOneBy({id});
-    }
+  //update user's password
+  async updateUserPassword(userid: number, pass
+    : string): Promise<UpdateResult> {
+        //generate password salt
+        const salt = await genSalt(10);
+    
+        //use salt to generate hashed password
+        const password = await hash(pass, salt);
+        
+    return this.userRepository.update(userid, { password });
+  }
 
-    async findUserByUsernameWithoutPassword(username: string){
-        const fetchedUser = await this.userRepository.findOneBy({username});
-        const {password, ...user} = fetchedUser;
+  findUserById(id: number): Promise<User> {
+    return this.userRepository.findOneBy({ id });
+  }
 
-        return user;
-    }
+  async findUserByUsernameWithoutPassword(username: string) {
+    const fetchedUser = await this.userRepository.findOneBy({ username });
+    const { password, ...user } = fetchedUser;
 
-    findUserByUsernameWithPassword(username: string){
-        return this.userRepository.findOneBy({username});
-    }
+    return user;
+  }
+
+  findUserByUsernameWithPassword(username: string) {
+    return this.userRepository.findOneBy({ username });
+  }
 }
