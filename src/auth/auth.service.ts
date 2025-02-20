@@ -27,7 +27,9 @@ export class AuthService {
         const token = await this.jtwService.signAsync({sub: newUser.id, username: newUser.username});
 
         return {
-            access_token: token
+            access_token: token,
+            username: newUser.username,
+            id: newUser.id,
         }
     }
 
@@ -53,7 +55,9 @@ export class AuthService {
         const token = await this.jtwService.signAsync({sub: user.id, username: user.username});
 
         return {
-            access_token: token
+            access_token: token,
+            username: user.username,
+            id: user.id,
         }
     }
 }
