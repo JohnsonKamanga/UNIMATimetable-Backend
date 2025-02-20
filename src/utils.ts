@@ -17,7 +17,7 @@ function getTableString(file: string): string {
 function getUnfilteredCourses(str: string): RegExpExecArray[] {
   /*an array of arrays. each array contains a string in index 0, the index that the string appears in within
  the original text at index 1, the original text at index 2 and the groups at index 3*/
-  return [...str.matchAll(/[A-z]{3}[1-5][12][1-9][a-z]{0,2}/g)];
+  return [...str.matchAll(/[A-z]{3}[1-5][012][0-9][a-z]{0,2}/g)];
 }
 
 function getUniqueCourses(unfilteredCourses: RegExpExecArray[]): string[] {
