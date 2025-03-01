@@ -7,6 +7,7 @@ import { CourseService } from '../course/course.service';
 import { CourseToTimeTable } from '../coursetotimetable/coursetotimetable.entity';
 import axios from 'axios';
 import * as request from 'postman-request';
+import { promisify } from 'util';
 
 @Injectable()
 export class TimetableService {
@@ -18,42 +19,43 @@ export class TimetableService {
     private courseServices: CourseService,
   ) {}
 
-  fetchTimeTable(
+  async fetchTimeTable(
     portalCred: {
       username: string;
       password: string;
     },
-    callback,
+    callback: (input: string) => Promise<number>,
   ) {
     const { username, password } = portalCred;
+    let id: number;
     //login user in first
-    request.post(
-      'https://students.unima.ac.mw/login.php',
-      {
+    const postAsync = promisify(request.post);
+    try {
+      const res = await postAsync('https://students.unima.ac.mw/login.php', {
         form: {
           username,
           password,
           login: '',
         },
-      },
-      async (err, res, payload) => {
-        //get coockies returned and fetch the timetable from the portal
-        const fileString = (
-          await axios.get('https://students.unima.ac.mw/pages/timetable', {
-            headers: {
-              Cookie: `${res.rawHeaders[13]} ${res.rawHeaders[15]}`,
-            },
-          })
-        ).data;
-
-        if (err) {
-          console.error('an error occured when fetching the timetable: ', err);
-          return;
-        }
-
-        callback(fileString);
-      },
-    );
+      });
+      //get coockies returned and fetch the timetable from the portal
+      const response = await axios.get(
+        'https://students.unima.ac.mw/pages/timetable',
+        {
+          headers: {
+            Cookie: `${res.rawHeaders[13]} ${res.rawHeaders[15]}`,
+          },
+        },
+      );
+      console.log('id fetching...');
+      return await callback(response.data);
+    } catch (err) {
+      console.error(
+        'An error occured when fetching ' + username + "'s" + ' timetable: ',
+        err,
+      );
+      return;
+    }
   }
 
   async createTimeTable(
@@ -62,48 +64,63 @@ export class TimetableService {
     userid: number,
     current: boolean,
   ) {
-    let timetableId: number;
-    this.fetchTimeTable(portalCred, async (fileString) => {
-      try {
-        if (fileString !== '') {
-          const timetableDetails = parseTimetable(fileString);
-          const timetable = await this.timetableRepository.save({
-            name: timetableName,
-            academic_year:
-              new Date().getFullYear().toString() +
-              '/' +
-              (new Date().getFullYear() + 1).toString(),
-            semester: Number(timetableDetails[0].course.charAt(4)),
-            current: current,
-            user: { id: userid },
+    try{
+    const timetableId: number = await this.fetchTimeTable(
+      portalCred,
+      async (fileString) => {
+        if (current) {
+          const t = await this.timetableRepository.find({
+            where: {
+              current: true,
+            },
           });
 
-          timetableId = timetable.id;
-
-          for (let i = 0; i < timetableDetails.length; i++) {
-            const course = await this.courseServices.createCourse({
-              course_code: timetableDetails[i].course,
-              year_taken: Number(timetableDetails[i].course.charAt(3)),
-              semester: Number(timetableDetails[i].course.charAt(4)),
+          for (let i = 0; i < t.length; i++) {
+            await this.timetableRepository.update(t[i].id, {
+              current: false,
             });
-
-            for (let j = 0; j < timetableDetails[i].schedule.length; j++) {
-              await this.courseToTimetableRepository.save({
-                venue: timetableDetails[i].schedule[j].venue,
-                scheduled_time: timetableDetails[i].schedule[j].time,
-                timetable: timetable,
-                course: course,
-              });
-            }
           }
         }
-      } catch (error) {
-        console.error('an error occured during timetable parsing: ', error);
-      }
-    });
+        try {
+          if (fileString !== '') {
+            const timetableDetails = parseTimetable(fileString);
+            const timetable = await this.timetableRepository.save({
+              name: timetableName,
+              academic_year:
+                new Date().getFullYear().toString() +
+                '/' +
+                (new Date().getFullYear() + 1).toString(),
+              semester: Number(timetableDetails[0].course.charAt(4)),
+              current: current,
+              user: { id: userid },
+            });
+
+            for (let i = 0; i < timetableDetails.length; i++) {
+              const course = await this.courseServices.createCourse({
+                course_code: timetableDetails[i].course,
+                year_taken: Number(timetableDetails[i].course.charAt(3)),
+                semester: Number(timetableDetails[i].course.charAt(4)),
+              });
+
+              for (let j = 0; j < timetableDetails[i].schedule.length; j++) {
+                await this.courseToTimetableRepository.save({
+                  venue: timetableDetails[i].schedule[j].venue,
+                  scheduled_time: timetableDetails[i].schedule[j].time,
+                  timetable: timetable,
+                  course: course,
+                });
+              }
+            }
+            return timetable.id;
+          }
+        } catch (error) {
+          console.error('an error occured during timetable parsing: ', error);
+        }
+      },
+    );
 
     if (timetableId) {
-      return this.timetableRepository.findOne({
+      const data = await this.timetableRepository.findOne({
         where: {
           id: timetableId,
         },
@@ -112,8 +129,14 @@ export class TimetableService {
           user: false,
         },
       });
+      return data;
+    }}
+    catch(err){
+      console.error(
+        'An error occured when creating ' + portalCred.username + "'s" + ' timetable: ',
+        err,
+      );
     }
-    return;
   }
 
   async getTimeTable(userid: number, name: string) {
@@ -195,6 +218,9 @@ export class TimetableService {
         user: false,
       },
     });
+    if (!data) {
+      return null;
+    }
 
     let res: {
       monday: CourseToTimeTable[];
@@ -210,36 +236,35 @@ export class TimetableService {
       friday: [null, null, null, null, null, null, null, null, null],
     };
 
-    if (data) {
-      for (let i = 0; i < data.course_to_timetables.length; i++) {
-        const courseSchedule = await this.courseToTimetableRepository.findOne({
-          where: {
-            id: data.course_to_timetables[i].id,
-          },
-          relations: {
-            course: true,
-            timetable: false,
-          },
-        });
+    console.log('user: ', userId);
+    for (let i = 0; i < data.course_to_timetables.length; i++) {
+      const courseSchedule = await this.courseToTimetableRepository.findOne({
+        where: {
+          id: data.course_to_timetables[i].id,
+        },
+        relations: {
+          course: true,
+          timetable: false,
+        },
+      });
 
-        if (Number(courseSchedule.scheduled_time) >= 40) {
-          res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
-            courseSchedule;
-        } else if (Number(courseSchedule.scheduled_time) >= 30) {
-          res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
-            courseSchedule;
-        } else if (Number(courseSchedule.scheduled_time) >= 20) {
-          res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
-            courseSchedule;
-        } else if (Number(courseSchedule.scheduled_time) >= 10) {
-          res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
-            courseSchedule;
-        } else {
-          res.monday[Number(courseSchedule.scheduled_time) - 1] =
-            courseSchedule;
-        }
+      if (Number(courseSchedule.scheduled_time) >= 40) {
+        res.friday[Number(courseSchedule.scheduled_time) - 40 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 30) {
+        res.thursday[Number(courseSchedule.scheduled_time) - 30 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 20) {
+        res.wednesday[Number(courseSchedule.scheduled_time) - 20 - 1] =
+          courseSchedule;
+      } else if (Number(courseSchedule.scheduled_time) >= 10) {
+        res.tuesday[Number(courseSchedule.scheduled_time) - 10 - 1] =
+          courseSchedule;
+      } else {
+        res.monday[Number(courseSchedule.scheduled_time) - 1] = courseSchedule;
       }
     }
+
     return res;
   }
 
@@ -255,6 +280,9 @@ export class TimetableService {
           user: false,
         },
       });
+      if (!timetable) {
+        return;
+      }
 
       for (let i = 0; i < timetable.course_to_timetables.length; i++) {
         const course =
