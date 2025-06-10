@@ -1,3 +1,16 @@
+# Application Idea
+The backend API for the unima timetable generator project.
+
+# Key Features 
+- JWT authentication system
+- Server side web scraping in order to prevent CORS issues with the student portal.
+
+# Remarks
+The backend API is incomplete. The core functionality is working however key security measures have not yet been fully implemented.
+
+
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
